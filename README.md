@@ -1,4 +1,6 @@
 🧠 Customer Churn Prediction using ANN
+
+
 Hey folks! 👋
 This project is all about predicting customer churn using an Artificial Neural Network (ANN). It's a classic problem in the business world — figuring out which customers are likely to leave — and I tackled it using deep learning with a clean accuracy of 84.95% on the test set! 🔥
 
