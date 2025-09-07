@@ -27,7 +27,7 @@ Whenever I got stuck (which was... often 👀), I took a moment to **learn** and
 ---
 
 ## 📂 Folder Structure
-
+```
 Customer-Churn-Prediction-ANN/
 ├── notebooks/
 │ └── churn_model.ipynb # Annotated and explained notebook
@@ -35,7 +35,7 @@ Customer-Churn-Prediction-ANN/
 ├── requirements.txt # Dependencies
 ├── README.md # This file
 └── .gitignore # Ignored temp files
-
+```
 ---
 
 ## 🧠 Skills Demonstrated
