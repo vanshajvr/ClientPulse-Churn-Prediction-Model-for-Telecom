@@ -1,45 +1,64 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
+import pandas as pd
 import joblib
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 
+# ----------------------
 # Load model + scaler
-model = load_model("churn_model.h5")
-scaler = joblib.load("scaler.pkl")
+# ----------------------
+scaler = joblib.load("scaler.pkl")   # you must have saved this during training
+ann_model = tf.keras.models.load_model("churn_model.h5")
 
 st.title("📊 ClientPulse: Customer Churn Prediction")
-st.write("Predict whether a telecom customer is likely to churn or stay.")
 
-# Inputs
-gender = st.selectbox("Gender", ["Male", "Female"])
-age = st.slider("Age", 18, 80, 30)
-tenure = st.number_input("Tenure (months)", 0, 72, 12)
-monthly_charges = st.number_input("Monthly Charges ($)", 0.0, 200.0, 50.0)
+# ----------------------
+# User inputs
+# ----------------------
+st.sidebar.header("Customer Information")
 
-gender_map = {"Male": 0, "Female": 1}
-gender_num = gender_map[gender]
+# Example inputs (replace with your dataset’s features)
+tenure = st.sidebar.number_input("Tenure (months)", min_value=0, max_value=100, value=12)
+monthly_charges = st.sidebar.number_input("Monthly Charges", min_value=0, max_value=200, value=70)
+total_charges = st.sidebar.number_input("Total Charges", min_value=0, max_value=10000, value=1000)
 
-if st.button("Predict"):
-    # Create dataframe
-    input_df = pd.DataFrame({
-        "gender": [gender_num],
-        "age": [age],
-        "tenure": [tenure],
-        "monthly_charges": [monthly_charges]
-    })
+# Add all the categorical fields you used in training (e.g. Contract, InternetService, etc.)
+contract = st.sidebar.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
-    # Scale features
-    input_array = scaler.transform(input_df).astype(np.float32)
+# ----------------------
+# Build DataFrame
+# ----------------------
+# Match the exact columns you trained the ANN on
+input_dict = {
+    "tenure": [tenure],
+    "MonthlyCharges": [monthly_charges],
+    "TotalCharges": [total_charges],
+    "Contract": [contract],
+    # add other features here in the same order as training
+}
 
-    # Predict
-    prediction = model.predict(input_array)
+input_df = pd.DataFrame(input_dict)
 
-    if prediction.shape[-1] == 1:  # Binary
-        prob = float(prediction[0][0])
-        label = "Churn" if prob > 0.5 else "Stay"
-        st.success(f"✅ Prediction: **{label}** (Churn Probability: {prob:.2f})")
-    else:
-        predicted_class = prediction.argmax(axis=1)[0]
-        st.success(f"✅ Predicted Class: {predicted_class}")
+# ----------------------
+# Align columns to training scaler
+# ----------------------
+try:
+    input_df = input_df[scaler.feature_names_in_]   # enforce same column order
+except:
+    st.error("⚠️ Input features do not match training features. Please check column names.")
+    st.stop()
 
+# ----------------------
+# Scale + Predict
+# ----------------------
+input_scaled = scaler.transform(input_df).astype(np.float32)
+prediction = ann_model.predict(input_scaled)[0][0]  # assuming binary churn (sigmoid output)
+
+# ----------------------
+# Display Result
+# ----------------------
+st.subheader("Prediction Result:")
+if prediction > 0.5:
+    st.error(f"🚨 Customer is likely to churn! (Probability: {prediction:.2f})")
+else:
+    st.success(f"✅ Customer is likely to stay. (Probability: {prediction:.2f})")
