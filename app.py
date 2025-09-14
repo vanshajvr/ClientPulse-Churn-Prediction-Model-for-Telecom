@@ -5,7 +5,7 @@ import pandas as pd
 # Load model
 model = joblib.load("churn_model.pkl")
 
-st.title("📊 ClientPulse: Customer Churn Prediction")
+st.title("ClientPulse: Customer Churn Prediction")
 
 st.write("Predict whether a customer is likely to churn.")
 
