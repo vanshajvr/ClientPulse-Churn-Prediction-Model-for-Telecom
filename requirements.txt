@@ -5,4 +5,5 @@ matplotlib
 seaborn
 keras
 tensorflow
+joblib
 
