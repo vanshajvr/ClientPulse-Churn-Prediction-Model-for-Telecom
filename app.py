@@ -98,7 +98,7 @@ if st.button("🚀 Predict Churn"):
         else:
             st.success(f"✅ Safe: Customer is likely to **STAY** with probability {1-prob:.2f}")
 
-        # Plotly gauge chart for probability
+        # Plotly gauge chart
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob*100,
@@ -120,6 +120,18 @@ if st.button("🚀 Predict Churn"):
             }
         ))
         st.plotly_chart(fig, use_container_width=True)
+
+        # -----------------------
+        # Export to CSV
+        # -----------------------
+        export_df = input_df.copy()
+        export_df["Churn_Probability"] = prob
+        st.download_button(
+            label="💾 Download Prediction as CSV",
+            data=export_df.to_csv(index=False),
+            file_name="churn_prediction.csv",
+            mime="text/csv"
+        )
 
     except Exception as e:
         st.error(f"❌ Error during prediction: {e}")
