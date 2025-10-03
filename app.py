@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import joblib
+import plotly.graph_objects as go
 
 # -----------------------
 # Load Model & Scaler
@@ -11,7 +12,7 @@ model = tf.keras.models.load_model("churn_model.h5")
 scaler = joblib.load("scaler.pkl")
 
 # -----------------------
-# Hardcoded columns (as per your model)
+# Hardcoded columns
 # -----------------------
 expected_columns = [
     "CreditScore", "Age", "Tenure", "Balance", "NumOfProducts",
@@ -79,8 +80,6 @@ input_dict = {
 }
 
 input_df = pd.DataFrame([input_dict])
-
-# Align columns just in case
 input_df = input_df.reindex(columns=expected_columns, fill_value=0)
 
 # -----------------------
@@ -88,21 +87,39 @@ input_df = input_df.reindex(columns=expected_columns, fill_value=0)
 # -----------------------
 if st.button("🚀 Predict Churn"):
     try:
-        # Scale input
         input_scaled = scaler.transform(input_df).astype(np.float32)
-        # Predict
         prediction = model.predict(input_scaled)
         prob = float(prediction[0][0])
 
-        # Display result
+        # Result text
         if prob > 0.5:
             st.error(f"⚠️ High Risk: Customer is likely to **CHURN** with probability {prob:.2f}")
         else:
             st.success(f"✅ Safe: Customer is likely to **STAY** with probability {1-prob:.2f}")
 
-        # Show probability meter
-        st.markdown("**Churn Probability:**")
-        st.progress(int(prob * 100))
+        # Plotly gauge chart for probability
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=prob*100,
+            number={'suffix': "%"},
+            title={'text': "Churn Probability"},
+            gauge={
+                'axis': {'range': [0, 100]},
+                'bar': {'color': "red" if prob>0.5 else "green"},
+                'steps': [
+                    {'range': [0, 50], 'color': "green"},
+                    {'range': [50, 75], 'color': "yellow"},
+                    {'range': [75, 100], 'color': "red"}
+                ],
+                'threshold': {
+                    'line': {'color': "black", 'width': 4},
+                    'thickness': 0.75,
+                    'value': prob*100
+                }
+            }
+        ))
+
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ Error during prediction: {e}")
