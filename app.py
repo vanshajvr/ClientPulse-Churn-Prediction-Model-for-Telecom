@@ -5,7 +5,8 @@ import tensorflow as tf
 import pickle
 
 # Load model and scaler
-model = tf.keras.models.load_model("model.h5")
+model = tf.keras.models.load_model("churn_model.h5")
+
 
 with open("scaler.pkl", "rb") as f:
     scaler = pickle.load(f)
