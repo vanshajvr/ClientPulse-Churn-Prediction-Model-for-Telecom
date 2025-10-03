@@ -2,17 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-import pickle
+import joblib
 
 # Load model and scaler
 model = tf.keras.models.load_model("churn_model.h5")
 
-
-with open("scaler.pkl", "rb") as f:
-    scaler = pickle.load(f)
-
-with open("columns.pkl", "rb") as f:
-    expected_columns = pickle.load(f)
+scaler = joblib.load("scaler.pkl")
 
 # 🎨 Page Config
 st.set_page_config(page_title="📊 Telecom Churn Prediction", page_icon="📱", layout="wide")
