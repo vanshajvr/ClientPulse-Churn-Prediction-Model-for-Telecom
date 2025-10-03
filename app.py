@@ -8,7 +8,8 @@ import plotly.graph_objects as go
 # -----------------------
 # Load Model & Scaler
 # -----------------------
-model = tf.keras.models.load_model("churn_model.h5")
+# Use compile=False to avoid H5 deserialization issues
+model = tf.keras.models.load_model("churn_model.h5", compile=False)
 scaler = joblib.load("scaler.pkl")
 
 # -----------------------
@@ -118,7 +119,6 @@ if st.button("🚀 Predict Churn"):
                 }
             }
         ))
-
         st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
