@@ -8,7 +8,6 @@ import plotly.graph_objects as go
 # -----------------------
 # Load Model & Scaler
 # -----------------------
-# Use compile=False to avoid H5 deserialization issues
 model = tf.keras.models.load_model("churn_model.h5", compile=False)
 scaler = joblib.load("scaler.pkl")
 
@@ -91,15 +90,18 @@ if st.button("🚀 Predict Churn"):
         input_scaled = scaler.transform(input_df).astype(np.float32)
         prediction = model.predict(input_scaled)
         prob = float(prediction[0][0])
+        stay_prob = 1 - prob
 
         # Result text
         if prob > 0.5:
             st.error(f"⚠️ High Risk: Customer is likely to **CHURN** with probability {prob:.2f}")
         else:
-            st.success(f"✅ Safe: Customer is likely to **STAY** with probability {1-prob:.2f}")
+            st.success(f"✅ Safe: Customer is likely to **STAY** with probability {stay_prob:.2f}")
 
+        # -----------------------
         # Plotly gauge chart
-        fig = go.Figure(go.Indicator(
+        # -----------------------
+        gauge_fig = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob*100,
             number={'suffix': "%"},
@@ -119,7 +121,26 @@ if st.button("🚀 Predict Churn"):
                 }
             }
         ))
-        st.plotly_chart(fig, use_container_width=True)
+
+        # -----------------------
+        # Stay vs Churn Donut Chart
+        # -----------------------
+        donut_fig = go.Figure(data=[go.Pie(
+            labels=['Stay', 'Churn'],
+            values=[stay_prob, prob],
+            hole=0.4,
+            marker=dict(colors=['green', 'red'])
+        )])
+        donut_fig.update_layout(title_text="Stay vs Churn Probability")
+
+        # -----------------------
+        # Display charts side by side
+        # -----------------------
+        col1_chart, col2_chart = st.columns(2)
+        with col1_chart:
+            st.plotly_chart(gauge_fig, use_container_width=True)
+        with col2_chart:
+            st.plotly_chart(donut_fig, use_container_width=True)
 
         # -----------------------
         # Export to CSV
